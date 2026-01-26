@@ -75,7 +75,17 @@ Because modern calendar apps (Google Calendar, Apple Calendar) require a stable 
 
 ---
 
-## 📅 How to Subscribe
+## � Customization (Optional)
+
+Since you have **forked** the project, you have full control over the code! You can modify `sync_strava.py` to customize your calendar events.
+
+*   **Change Emojis**: Edit the `create_ics_content` function (around line 53) to swap 🏃/🚴 for other symbols.
+*   **Filter Activities**: Want to ignore commutes or only sync runs? Add a simple `if` condition in the loop.
+*   **Change Descriptions**: Modify what info appears in the calendar event (add heart rate, calories, etc.) by editing the `e.description` field.
+
+---
+
+## �📅 How to Subscribe
 Once the workflow runs successfully (green checkmark), your Gist will be updated.
 
 1.  Go to your [Gist](https://gist.github.com) and open the `strava.ics` file.
