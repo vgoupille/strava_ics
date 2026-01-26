@@ -50,12 +50,27 @@ def create_ics_content(activities):
     c = Calendar()
     for act in activities:
         e = Event()
-        emoji = "🏃" if act['type'] == 'Run' else "🚴" if act['type'] == 'Ride' else "🏅"
+        if act['type'] == 'Run':
+            emoji = "🏃"
+        elif act['type'] == 'Ride':
+            emoji = "🚴"
+        elif act['type'] == 'Walk':
+            emoji = "🚶"
+        else:
+            emoji = "🏅"
+            
         e.name = f"{emoji} {act['name']}"
         e.begin = arrow.get(act['start_date']).datetime
         e.duration = {"seconds": act['moving_time']}
+        
         dist_km = act['distance'] / 1000
-        e.description = f"Distance: {dist_km:.2f} km\nLink: https://www.strava.com/activities/{act['id']}"
+        description = f"Distance: {dist_km:.2f} km"
+        
+        if act.get('average_heartrate'):
+            description += f"\nHeart Rate: {int(act['average_heartrate'])} bpm"
+            
+        description += f"\nLink: https://www.strava.com/activities/{act['id']}"
+        e.description = description
         c.events.add(e)
     
     # Retourne le texte du calendrier au lieu de créer un fichier
