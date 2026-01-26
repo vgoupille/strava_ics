@@ -24,9 +24,35 @@ def get_access_token():
 
 def get_activities(token):
     headers = {'Authorization': f"Bearer {token}"}
-    res = requests.get("https://www.strava.com/api/v3/athlete/activities?per_page=50", headers=headers)
-    res.raise_for_status()
-    return res.json()
+    
+    # Check if user wants full history
+    sync_full = os.environ.get('SYNC_FULL_HISTORY', 'false').lower() == 'true'
+    
+    all_activities = []
+    page = 1
+    per_page = 200 if sync_full else 50 # Max default 30, but can go up to 200
+    
+    while True:
+        print(f"Fetching page {page}...")
+        res = requests.get(
+            f"https://www.strava.com/api/v3/athlete/activities?per_page={per_page}&page={page}", 
+            headers=headers
+        )
+        res.raise_for_status()
+        data = res.json()
+        
+        if not data:
+            break
+            
+        all_activities.extend(data)
+        
+        if not sync_full:
+            break
+            
+        page += 1
+        
+    print(f"Total activities fetched: {len(all_activities)}")
+    return all_activities
 
 def update_gist(content):
     """Envoie le contenu vers le Gist Secret"""

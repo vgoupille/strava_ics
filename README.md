@@ -82,6 +82,7 @@ Since you have **forked** the project, you have full control over the code! You 
 *   **Change Emojis**: Edit the `create_ics_content` function (around line 53) to swap 🏃/🚴 for other symbols.
 *   **Filter Activities**: Want to ignore commutes or only sync runs? Add a simple `if` condition in the loop.
 *   **Change Descriptions**: Modify what info appears in the calendar event (add heart rate, calories, etc.) by editing the `e.description` field.
+*   **Sync ALL History**: By default, only the last 50 activities are synced. To sync EVERYTHING, add a repository secret (or variable) named `SYNC_FULL_HISTORY` with the value `true`.
 
 ---
 
