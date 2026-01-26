@@ -84,9 +84,29 @@ Since you have **forked** the project, you have full control over the code! You 
 *   **Change Descriptions**: Modify what info appears in the calendar event (add heart rate, calories, etc.) by editing the `e.description` field.
 *   **Sync ALL History**: By default, only the last 50 activities are synced. To sync EVERYTHING, add a repository secret (or variable) named `SYNC_FULL_HISTORY` with the value `true`.
 
+### ⏱️ Synchronization Frequency (Cron)
+
+By default, the calendar updates **every hour**. GitHub Actions requires the schedule to be defined in the workflow file itself (it cannot be a variable or secret).
+
+To change the frequency:
+
+1.  Open the file `.github/workflows/update_calendar.yml`.
+2.  Look for line 5: `- cron: "0 * * * *"`.
+3.  Change the value inside the quotes.
+
+| Frequency | Cron Value | Description |
+| :--- | :--- | :--- |
+| **Every Hour** (Default) | `"0 * * * *"` | Runs at minute 0 of every hour. |
+| **Every 30 Minutes** | `"*/30 * * * *"` | Runs at minute 0 and 30. |
+| **Every 15 Minutes** | `"*/15 * * * *"` | Runs at 0, 15, 30, 45. |
+| **Once a Day (8 AM)** | `"0 8 * * *"` | Runs daily at 08:00 UTC. |
+| **Every 6 Hours** | `"0 */6 * * *"` | Runs at 00:00, 06:00, 12:00, 18:00. |
+
+> **Note:** GitHub Actions applies a random delay (usually 5-10 mins) during high load.
+
 ---
 
-## �📅 How to Subscribe
+## 📅 How to Subscribe
 Once the workflow runs successfully (green checkmark), your Gist will be updated.
 
 1.  Go to your [Gist](https://gist.github.com) and open the `strava.ics` file.
@@ -95,3 +115,12 @@ Once the workflow runs successfully (green checkmark), your Gist will be updated
     *   *Note: To make the link permanent even if you update the Gist, remove the commit hash from the URL.*
     *   Global URL: `https://gist.githubusercontent.com/[USER]/[GIST_ID]/raw/strava.ics`
 4.  Paste this URL into your calendar app (Google Calendar: *Add from URL*, Apple Calendar: *New Subscription*).
+
+---
+
+## 📂 File Structure
+
+*   `sync_strava.py`: The brain of the operation. Python script that fetches Strava data and formats the ICS calendar.
+*   `.github/workflows/update_calendar.yml`: The scheduler. Tells GitHub exactly when to run the script (Cron).
+*   `requirements.txt`: List of Python libraries needed (like `requests`, `ics`, `arrow`).
+*   `README.md`: The instruction manual you are reading right now.
