@@ -1,12 +1,15 @@
+import os
 import requests
 import arrow
 from ics import Calendar, Event
-import os
 
-# Vos secrets seront injectés via les variables d'environnement GitHub
-CLIENT_ID = os.environ['STRAVA_CLIENT_ID']
-CLIENT_SECRET = os.environ['STRAVA_CLIENT_SECRET']
-REFRESH_TOKEN = os.environ['STRAVA_REFRESH_TOKEN']
+# Secrets
+CLIENT_ID = os.environ.get('STRAVA_CLIENT_ID')
+CLIENT_SECRET = os.environ.get('STRAVA_CLIENT_SECRET')
+REFRESH_TOKEN = os.environ.get('STRAVA_REFRESH_TOKEN')
+# Nouveaux secrets pour le Gist
+GIST_TOKEN = os.environ.get('GIST_TOKEN')
+GIST_ID = os.environ.get('GIST_ID')
 
 def get_access_token():
     payload = {
@@ -16,29 +19,50 @@ def get_access_token():
         'grant_type': 'refresh_token'
     }
     res = requests.post("https://www.strava.com/oauth/token", data=payload)
+    res.raise_for_status()
     return res.json()['access_token']
 
 def get_activities(token):
     headers = {'Authorization': f"Bearer {token}"}
-    # On récupère les 30 dernières activités
-    res = requests.get("https://www.strava.com/api/v3/athlete/activities?per_page=30", headers=headers)
+    res = requests.get("https://www.strava.com/api/v3/athlete/activities?per_page=50", headers=headers)
+    res.raise_for_status()
     return res.json()
 
-def create_ics(activities):
+def update_gist(content):
+    """Envoie le contenu vers le Gist Secret"""
+    print("Mise à jour du Gist Secret...")
+    headers = {
+        "Authorization": f"token {GIST_TOKEN}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    payload = {
+        "files": {
+            "strava.ics": {
+                "content": content
+            }
+        }
+    }
+    res = requests.patch(f"https://api.github.com/gists/{GIST_ID}", json=payload, headers=headers)
+    res.raise_for_status()
+    print("Gist mis à jour !")
+
+def create_ics_content(activities):
     c = Calendar()
     for act in activities:
         e = Event()
-        e.name = f"{act['type']} : {act['name']}"
-        e.begin = act['start_date'] # Format ISO géré par arrow/ics
+        emoji = "🏃" if act['type'] == 'Run' else "🚴" if act['type'] == 'Ride' else "🏅"
+        e.name = f"{emoji} {act['name']}"
+        e.begin = arrow.get(act['start_date']).datetime
         e.duration = {"seconds": act['moving_time']}
-        e.description = f"Distance: {act['distance']/1000:.2f}km\nDénivelé: {act['total_elevation_gain']}m"
+        dist_km = act['distance'] / 1000
+        e.description = f"Distance: {dist_km:.2f} km\nLink: https://www.strava.com/activities/{act['id']}"
         c.events.add(e)
     
-    with open('strava.ics', 'w') as f:
-        f.writelines(c.serialize_iter())
+    # Retourne le texte du calendrier au lieu de créer un fichier
+    return c.serialize()
 
 if __name__ == "__main__":
     token = get_access_token()
-    activities = get_activities(token)
-    create_ics(activities)
-    print("Calendrier mis à jour !")
+    acts = get_activities(token)
+    ics_content = create_ics_content(acts)
+    update_gist(ics_content)

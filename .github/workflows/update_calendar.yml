@@ -2,7 +2,7 @@ name: Update Strava Calendar with uv
 
 on:
   schedule:
-    - cron: '0 * * * *' # Toutes les heures
+    - cron: "0 * * * *" # Toutes les heures
   workflow_dispatch:
 
 jobs:
@@ -34,6 +34,9 @@ jobs:
           STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
           STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
           STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
+          # Ajout des secrets Gist
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+          GIST_ID: ${{ secrets.GIST_ID }}
         run: python sync_strava.py
 
       - name: Commit and Push changes
