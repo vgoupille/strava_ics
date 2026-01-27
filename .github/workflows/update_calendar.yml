@@ -6,7 +6,7 @@ on:
     # "0 * * * *" = Every hour
     # "*/30 * * * *" = Every 30 minutes
     # "0 8 * * *" = Every day at 8am
-    - cron: "0 * * * *"
+    - cron: "0 */6 * * *"
   push:
     branches: [ main ]
   workflow_dispatch:
