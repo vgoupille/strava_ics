@@ -1,7 +1,8 @@
 import os
 import requests
 import arrow
-from ics import Calendar, Event
+from icalendar import Calendar, Event
+from datetime import timedelta
 
 # Secrets
 CLIENT_ID = os.environ.get('STRAVA_CLIENT_ID')
@@ -74,6 +75,8 @@ def update_gist(content):
 
 def create_ics_content(activities):
     c = Calendar()
+    c.add('prodid', '-//Strava Calendar//EN')
+    c.add('version', '2.0')
     for act in activities:
         e = Event()
         if act['type'] == 'Run':
@@ -84,23 +87,23 @@ def create_ics_content(activities):
             emoji = "🚶"
         else:
             emoji = "🏅"
-            
-        e.name = f"{emoji} {act['name']}"
-        e.begin = arrow.get(act['start_date']).datetime
-        e.duration = {"seconds": act['moving_time']}
-        
+
+        e.add('summary', f"{emoji} {act['name']}")
+        start_dt = arrow.get(act['start_date']).datetime
+        e.add('dtstart', start_dt)
+        e.add('dtend', start_dt + timedelta(seconds=act['moving_time']))
+
         dist_km = act['distance'] / 1000
         description = f"Distance: {dist_km:.2f} km"
-        
+
         if act.get('average_heartrate'):
             description += f"\nHeart Rate: {int(act['average_heartrate'])} bpm"
-            
+
         description += f"\nLink: https://www.strava.com/activities/{act['id']}"
-        e.description = description
-        c.events.add(e)
-    
-    # Retourne le texte du calendrier au lieu de créer un fichier
-    return c.serialize()
+        e.add('description', description)
+        c.add_component(e)
+
+    return c.to_ical().decode('utf-8')
 
 if __name__ == "__main__":
     token = get_access_token()

@@ -1,4 +1,3 @@
 requests
-ics
+icalendar
 arrow
-rich
