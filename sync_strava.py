@@ -85,6 +85,8 @@ def create_ics_content(activities):
             emoji = "🚴"
         elif act['type'] == 'Walk':
             emoji = "🚶"
+        elif act['type'] == 'WeightTraining':
+            emoji = "💪"
         else:
             emoji = "🏅"
 
