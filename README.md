@@ -157,7 +157,7 @@ soit une **URL** (ex. lien Raw d'un Gist GitHub).
 | BasicFit ICS | `DTSTART` = heure d'arrivée, `DTEND` = heure de départ réel |
 | Strava ICS | Filtre automatiquement les events `💪 * Weight Training` |
 
-### Utilisation
+### Utilisation locale
 
 #### 1. Comparer (dry-run)
 
@@ -173,16 +173,12 @@ Génère aussi un fichier **`preview_upload.json`** avec ce qui serait uploadé.
 #### 2. Filtrer par période
 
 ```bash
-uv run python compare_basicfit_strava.py \
-  --basicfit basicfit.ics \
-  --strava   strava.ics \
-  --from 2025-10-01
+uv run python compare_basicfit_strava.py ... --from 2025-10-01
 ```
 
 #### 3. Ajuster la marge de temps
 
 Par défaut **±30 minutes** entre l'arrivée BasicFit et le début du timer Strava.
-Augmente si tu lances souvent Strava tardivement :
 
 ```bash
 uv run python compare_basicfit_strava.py ... --margin 45
@@ -201,20 +197,47 @@ uv run python compare_basicfit_strava.py \
   --upload
 ```
 
-Une **confirmation est demandée** avant tout envoi.
-Chaque séance importée crée une activité `WeightTraining` nommée `💪 Muscu BasicFit`
-avec la durée réelle issue du ICS BasicFit.
+Une **confirmation est demandée** avant tout envoi. Chaque séance importée crée une activité
+`WeightTraining` nommée `💪 Muscu BasicFit` avec la durée réelle du ICS BasicFit.
 
-### Toutes les options
+### Utilisation via GitHub Actions
+
+Le workflow **"Import BasicFit → Strava"** se déclenche **manuellement uniquement** depuis l'onglet Actions.
+
+#### Secrets à configurer
+
+En plus des secrets Strava existants, ajoute ces 2 secrets dans **Settings → Secrets → Actions** :
+
+| Secret | Valeur |
+|---|---|
+| `BASICFIT_ICS_URL` | URL Raw du Gist BasicFit |
+| `STRAVA_ICS_URL` | URL Raw du Gist Strava |
+
+#### Lancer le workflow
+
+1. Aller dans l'onglet **Actions** → **Import BasicFit → Strava**
+2. Cliquer **Run workflow**
+3. Remplir les options :
+
+| Option | Défaut | Description |
+|---|---|---|
+| `dry_run` | ✅ coché | Affiche sans uploader, génère un artifact `preview_upload.json` |
+| `margin` | `30` | Tolérance en minutes entre arrivée BF et début Strava |
+| `since` | *(vide)* | N'importer que depuis cette date (`YYYY-MM-DD`) |
+
+> Décocher `dry_run` pour uploader réellement les séances manquantes sur Strava.
+
+### Toutes les options CLI
 
 | Option | Défaut | Description |
 |---|---|---|
 | `--basicfit` | *(requis)* | Fichier/URL ICS BasicFit |
 | `--strava` | *(requis)* | Fichier/URL ICS Strava |
-| `--margin` | `30` | Tolérance en minutes entre arrivée BF et début Strava |
-| `--duration` | `90` | Durée fallback en minutes si non disponible dans le ICS |
+| `--margin` | `30` | Tolérance en minutes |
+| `--duration` | `90` | Durée fallback (min) si non dispo dans le ICS |
 | `--from` | *(tout)* | Ne comparer qu'à partir de cette date (`YYYY-MM-DD`) |
-| `--upload` | off | Uploader sur Strava (avec confirmation) |
+| `--upload` | off | Uploader sur Strava |
+| `--yes` / `-y` | off | Bypass la confirmation interactive (pour CI) |
 | `--preview` | `preview_upload.json` | Fichier JSON de prévisualisation |
 
 ### Fichiers générés

@@ -1,7 +1,7 @@
 name: Import BasicFit → Strava
 
 on:
-  # Déclenchement manuel depuis l'onglet Actions
+  # Déclenchement manuel uniquement depuis l'onglet Actions
   workflow_dispatch:
     inputs:
       dry_run:
@@ -16,10 +16,6 @@ on:
         description: "Importer depuis cette date (YYYY-MM-DD, optionnel)"
         type: string
         default: ""
-
-  # Déclenchement automatique quotidien à 21h UTC
-  schedule:
-    - cron: "0 21 * * *"
 
 jobs:
   compare-and-import:
