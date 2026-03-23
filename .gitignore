@@ -20,3 +20,12 @@ rad.json
 *.flf
 #Test results file
 TestResults.xml
+
+### Python ###
+__pycache__/
+*.py[cod]
+.venv/
+
+### Données sensibles — ne jamais commiter ###
+preview_upload.json
+uploaded_activities.json
