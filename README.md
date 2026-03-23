@@ -28,10 +28,13 @@ Because modern calendar apps (Google Calendar, Apple Calendar) require a stable 
 ### Phase 2: Get your Refresh Token
 *This one-time step authorizes the script to access your data forever.*
 
+> [!IMPORTANT]
+> If you plan to use the **BasicFit → Strava import**, you need the scope `activity:write` in addition to `activity:read_all`. Use the URL below which includes both.
+
 1.  **Generate the Authorization URL**:
     Replace `[YOUR_CLIENT_ID]` in the URL below with your actual ID, then paste it into your browser:
     ```
-    https://www.strava.com/oauth/authorize?client_id=[YOUR_CLIENT_ID]&response_type=code&redirect_uri=http://localhost/exchange_token&approval_prompt=force&scope=activity:read_all
+    https://www.strava.com/oauth/authorize?client_id=[YOUR_CLIENT_ID]&response_type=code&redirect_uri=http://localhost/exchange_token&approval_prompt=force&scope=activity:read_all,activity:write
     ```
 2.  **Authorize**: Click "Authorize" on the Strava page. You will be redirected to a broken page (`localhost`).
 3.  **Get the Code**: Look at the URL bar of the broken page. Copy the code after `&code=`.
@@ -196,6 +199,11 @@ uv run python compare_basicfit_strava.py \
   --strava   strava.ics \
   --upload
 ```
+
+> [!WARNING]
+> Erreur `401 Unauthorized` lors de l'upload ? Ton refresh token n'a pas le scope `activity:write`.
+> Regénère-le avec l'URL de la Phase 2 ci-dessus (qui inclut `activity:write`), puis mets à jour
+> le secret `STRAVA_REFRESH_TOKEN` dans GitHub Actions.
 
 Une **confirmation est demandée** avant tout envoi. Chaque séance importée crée une activité
 `WeightTraining` nommée `💪 Muscu BasicFit` avec la durée réelle du ICS BasicFit.
