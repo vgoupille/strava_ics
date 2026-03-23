@@ -373,6 +373,11 @@ def main():
         help="Uploader les activités manquantes sur Strava (nécessite les variables d'env Strava)",
     )
     parser.add_argument(
+        "--yes", "-y",
+        action="store_true",
+        help="Confirmer l'upload sans prompt interactif (pour CI/GitHub Actions)",
+    )
+    parser.add_argument(
         "--preview",
         default="preview_upload.json",
         help="Fichier JSON de preview (défaut : preview_upload.json)",
@@ -420,7 +425,7 @@ def main():
 
     # Confirm & upload
     console.print(f"\n[bold yellow]⚠️  Vous allez uploader {len(unmatched)} activité(s) sur Strava.[/bold yellow]")
-    if not Confirm.ask("Confirmer l'upload ?"):
+    if not args.yes and not Confirm.ask("Confirmer l'upload ?"):
         console.print("[dim]Upload annulé.[/dim]")
         return
 
