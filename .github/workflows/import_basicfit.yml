@@ -7,7 +7,7 @@ on:
       dry_run:
         description: "Dry-run (ne pas uploader, juste afficher)"
         type: boolean
-        default: false
+        default: true
       margin:
         description: "Marge de temps en minutes (défaut: 30)"
         type: string
@@ -17,6 +17,9 @@ on:
         type: string
         default: ""
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   compare-and-import:
     runs-on: ubuntu-latest
@@ -24,6 +27,18 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Vérifier les secrets requis
+        run: |
+          if [ -z "${{ secrets.BASICFIT_ICS_URL }}" ]; then
+            echo "❌ Secret BASICFIT_ICS_URL manquant dans Settings → Secrets → Actions"
+            exit 1
+          fi
+          if [ -z "${{ secrets.STRAVA_ICS_URL }}" ]; then
+            echo "❌ Secret STRAVA_ICS_URL manquant dans Settings → Secrets → Actions"
+            exit 1
+          fi
+          echo "✅ Secrets présents"
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -39,32 +54,37 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Compare BasicFit ↔ Strava (dry-run)
-        if: ${{ github.event_name == 'schedule' || inputs.dry_run == true }}
-        env:
-          BASICFIT_ICS_URL: ${{ secrets.BASICFIT_ICS_URL }}
-          STRAVA_ICS_URL: ${{ secrets.STRAVA_ICS_URL }}
+      - name: Construire les arguments du script
+        id: args
         run: |
           SINCE_ARG=""
           if [ -n "${{ inputs.since }}" ]; then
             SINCE_ARG="--from ${{ inputs.since }}"
           fi
+          echo "since_arg=$SINCE_ARG" >> $GITHUB_OUTPUT
+
+      - name: Comparer BasicFit ↔ Strava (dry-run)
+        if: ${{ inputs.dry_run == true }}
+        env:
+          BASICFIT_ICS_URL: ${{ secrets.BASICFIT_ICS_URL }}
+          STRAVA_ICS_URL: ${{ secrets.STRAVA_ICS_URL }}
+        run: |
           uv run python compare_basicfit_strava.py \
             --basicfit "$BASICFIT_ICS_URL" \
             --strava   "$STRAVA_ICS_URL" \
             --margin   ${{ inputs.margin || '30' }} \
-            $SINCE_ARG
+            ${{ steps.args.outputs.since_arg }}
 
-      - name: Upload preview artifact (dry-run)
-        if: ${{ github.event_name == 'schedule' || inputs.dry_run == true }}
+      - name: Sauvegarder le preview (dry-run)
+        if: ${{ inputs.dry_run == true }}
         uses: actions/upload-artifact@v4
         with:
           name: preview_upload
           path: preview_upload.json
           retention-days: 7
 
-      - name: Compare BasicFit ↔ Strava + Upload
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run != true }}
+      - name: Comparer BasicFit ↔ Strava + Upload
+        if: ${{ inputs.dry_run == false }}
         env:
           BASICFIT_ICS_URL: ${{ secrets.BASICFIT_ICS_URL }}
           STRAVA_ICS_URL: ${{ secrets.STRAVA_ICS_URL }}
@@ -72,19 +92,15 @@ jobs:
           STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
           STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
         run: |
-          SINCE_ARG=""
-          if [ -n "${{ inputs.since }}" ]; then
-            SINCE_ARG="--from ${{ inputs.since }}"
-          fi
           uv run python compare_basicfit_strava.py \
             --basicfit "$BASICFIT_ICS_URL" \
             --strava   "$STRAVA_ICS_URL" \
             --margin   ${{ inputs.margin || '30' }} \
-            $SINCE_ARG \
+            ${{ steps.args.outputs.since_arg }} \
             --upload --yes
 
-      - name: Upload résultat (après import)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run != true }}
+      - name: Sauvegarder les résultats (après import)
+        if: ${{ inputs.dry_run == false }}
         uses: actions/upload-artifact@v4
         with:
           name: uploaded_activities
