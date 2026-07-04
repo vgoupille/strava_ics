@@ -1,4 +1,9 @@
-# 🏃‍♂️ Strava to Calendar Auto-Sync
+# 🏃‍♂️ Strava to Calendar Auto-Sync [ARCHIVED]
+
+> [!WARNING]
+> **Projet Archivé / Deprecated**
+>
+> Suite aux récentes modifications des conditions d'utilisation de l'API de Strava, il est désormais nécessaire d'avoir un abonnement payant (Strava Premium) pour pouvoir accéder aux données de l'API (notamment pour récupérer les activités). Ce projet est donc archivé et ne fonctionne plus pour les comptes Strava gratuits.
 
 Automatically sync your recent Strava activities to a calendar (`.ics`) file using **GitHub Actions**.
 
@@ -8,7 +13,7 @@ Because modern calendar apps (Google Calendar, Apple Calendar) require a stable 
 
 ## 📋 Prerequisites
 
-1.  A free **Strava** account.
+1.  A paid **Strava Premium** account (required for API access).
 2.  A **GitHub** account.
 3.  Basic familiarity with the terminal (for one-time setup).
 

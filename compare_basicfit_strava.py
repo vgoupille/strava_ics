@@ -287,8 +287,15 @@ def get_strava_access_token() -> str:
         },
         timeout=15,
     )
-    res.raise_for_status()
-    return res.json()["access_token"]
+    try:
+        res.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        console.print("\n[red]❌ Erreur lors du rafraîchissement du token d'accès Strava.[/red]")
+        console.print(f"[red]Détails de la réponse : {res.text}[/red]\n")
+        raise e
+    data = res.json()
+    console.print(f"[dim]Token d'accès Strava obtenu avec les scopes : {data.get('scope')}[/dim]")
+    return data["access_token"]
 
 
 def upload_activity(token: str, bf_event: dict, default_duration_min: int = 90) -> dict:

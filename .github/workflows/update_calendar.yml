@@ -1,14 +1,14 @@
 name: Update Strava Calendar with uv
 
 on:
-  schedule:
-    # ⏱️ Edit the line below to change frequency
-    # "0 * * * *" = Every hour
-    # "*/30 * * * *" = Every 30 minutes
-    # "0 8 * * *" = Every day at 8am
-    - cron: "0 */6 * * *"
-  push:
-    branches: [ main ]
+  # schedule:
+  #   # ⏱️ Edit the line below to change frequency
+  #   # "0 * * * *" = Every hour
+  #   # "*/30 * * * *" = Every 30 minutes
+  #   # "0 8 * * *" = Every day at 8am
+  #   - cron: "0 */6 * * *"
+  # push:
+  #   branches: [ main ]
   workflow_dispatch:
 
 env:

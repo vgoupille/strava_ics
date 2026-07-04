@@ -20,8 +20,16 @@ def get_access_token():
         'grant_type': 'refresh_token'
     }
     res = requests.post("https://www.strava.com/oauth/token", data=payload)
-    res.raise_for_status()
-    return res.json()['access_token']
+    try:
+        res.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        print("\n❌ Erreur lors du rafraîchissement du token d'accès Strava.")
+        print("Vérifiez vos secrets STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, et STRAVA_REFRESH_TOKEN.")
+        print(f"Détails de la réponse : {res.text}\n")
+        raise e
+    data = res.json()
+    print(f"Token obtenu avec les scopes : {data.get('scope')}")
+    return data['access_token']
 
 def get_activities(token):
     headers = {'Authorization': f"Bearer {token}"}
@@ -39,7 +47,19 @@ def get_activities(token):
             f"https://www.strava.com/api/v3/athlete/activities?per_page={per_page}&page={page}", 
             headers=headers
         )
-        res.raise_for_status()
+        try:
+            res.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            if res.status_code == 403:
+                print("\n❌ Erreur HTTP 403 : Accès interdit (Forbidden).")
+                print("Votre token de rafraîchissement (REFRESH_TOKEN) n'a probablement pas les permissions nécessaires.")
+                print("Le scope 'activity:read' ou 'activity:read_all' est REQUIS pour lire vos activités Strava.")
+                print("Pour corriger cela :")
+                print("1. Suivez les étapes de la 'Phase 2' du fichier README.md pour regénérer un token de rafraîchissement.")
+                print("2. Assurez-vous d'inclure les scopes 'activity:read_all' et 'activity:write' dans l'URL d'autorisation.")
+                print("3. Mettez à jour le secret STRAVA_REFRESH_TOKEN dans les paramètres de votre dépôt GitHub (Settings > Secrets and variables > Actions).")
+                print(f"Détails de la réponse de l'API : {res.text}\n")
+            raise e
         data = res.json()
         
         if not data:
